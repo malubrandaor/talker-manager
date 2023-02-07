@@ -8,6 +8,7 @@ app.use(express.json());
 const HTTP_OK_STATUS = 200;
 const PORT = '3000';
 
+// funçao que le o arquivo talker.json e converte para a linguagem js
 const readTalkers = async () => {
   const talkers = await fs.readFile(path.resolve(__dirname, 'talker.json'));
   const talkersJson = JSON.parse(talkers);
@@ -15,12 +16,12 @@ const readTalkers = async () => {
   return talkersJson;
 };
 
-
 // não remova esse endpoint, e para o avaliador funcionar
 app.get('/', (_request, response) => {
   response.status(HTTP_OK_STATUS).send();
 });
 
+// usar o try/catch abarca qualquer erro possivel
 app.get('/talker', async (req, res) => {
   try {
     const talker = await readTalkers();
