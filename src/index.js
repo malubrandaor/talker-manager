@@ -16,7 +16,7 @@ const readTalkers = async () => {
   return talkersJson;
 };
 
-// requisito 2 = funçao que busca o path pelo ultimo id 
+// requisito 2 = funçao que busca o path pelo ultimo id -- Segui a dica de colocar a funcao dentro do get e usar o find
 // const getTalkersById = async (req) => {
 //   const { id } = req.params;
 //   const talkersId = await readTalkers();
@@ -42,10 +42,9 @@ app.get('/talker', async (req, res) => {
 app.get('/talker/:id', async (req, res) => {
     const { id } = req.params;
     const talkersId = await readTalkers();
-    const talkersFindId = talkersId.find((i) => i.id === Number(id));
-   if (!talkersFindId) 
-    return res.status(404).json({ message: 'Pessoa palestrante não encontrada'});
-   res.status(200).json(talkersFindId);
+    const findId = talkersId.find((i) => i.id === Number(id));
+   if (!findId) return res.status(404).json({ message: 'Pessoa palestrante não encontrada' });
+   res.status(200).json(findId);
 });
 
 app.listen(PORT, () => {
