@@ -25,7 +25,6 @@ const readTalkers = async () => {
   }
 };
 
-
 const writeTalkers = async (identification) => {
   const talkerNew = fs.writeFile(path.resolve(__dirname, 'talker.json'), 
   JSON.stringify(identification));
@@ -46,6 +45,31 @@ app.get('/talker', async (__req, res) => {
     res.status(200).json([]);
   }
 });
+
+app.post('/login', validationsRequired, async (req, res) => {
+  try {
+  const randomToken = tolken();
+  res.status(HTTP_OK_STATUS).json({ token: `${randomToken}` });
+  } catch ({ message }) {
+    res.status(500).json({ message });
+  }
+});
+
+app.get('/talker/search', tokenValidation, async (req, res) => {
+  const { q } = req.query;
+  const talkers = await readTalkers();
+
+  const list = talkers.filter((talker) => talker.name.includes(q));
+
+  if (!list) {
+    return res.status(200).json([]);
+  }
+  if (!q) {
+      return res.status(200).json(talkers);
+    }
+    return res.status(200).json(list);
+});
+
  // inseri a funcao que coleta pelo id dentro do get (requisito 2)
 app.get('/talker/:id', async (req, res) => {
     const { id } = req.params;
@@ -55,14 +79,14 @@ app.get('/talker/:id', async (req, res) => {
    res.status(200).json(findId);
 });
 // a logica da funcao esta na pasta validations para organizaçao do arquivo
-app.post('/login', validationsRequired, async (req, res) => {
-  try {
-  const randomToken = tolken();
-  res.status(HTTP_OK_STATUS).json({ token: `${randomToken}` });
-  } catch ({ message }) {
-    res.status(500).json({ message });
-  }
-});
+// app.post('/login', validationsRequired, async (req, res) => {
+//   try {
+//   const randomToken = tolken();
+//   res.status(HTTP_OK_STATUS).json({ token: `${randomToken}` });
+//   } catch ({ message }) {
+//     res.status(500).json({ message });
+//   }
+// });
 // logicas da funcao esta na pasta validations 
 app.post('/talker', 
 tokenValidation, 
@@ -86,7 +110,6 @@ rates,
 async (req, res) => {
   const talkers = readTalkers();
   const { id } = req.params;
-  const { name, age, talk: { watchedAt, rate } } = req.body;
   talkers[Number(id)] = { id: +id, ...req.body };
   await writeTalkers(talkers);
   res.status(200).json({ id: +id, ...req.body });
@@ -97,8 +120,22 @@ app.delete('/talker/:id', tokenValidation, async (req, res) => {
   const { id } = req.params;
   const list = talkers.filter((talker) => talker.id !== +(id));
   await writeTalkers(list);
-  return res.status(204).json();
+  return res.status(204).end();
 });
+
+// app.get('/talker/search', tokenValidation, async (req, res) => {
+//   const talkers = await readTalkers();
+//   const { query1 } = req.query;
+//   const list = talkers.filter((talker) => talker.name.includes(query1));
+
+//  if (list === undefined || list === '') {
+//       return res.status(200).json(talkers);
+//     }
+//     if (!list) {
+//       return res.status(200).json([]);
+//     }
+//     return res.status(200).json(list);
+// });
 
 app.listen(PORT, () => {
   console.log('Online');
