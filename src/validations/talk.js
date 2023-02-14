@@ -12,7 +12,7 @@ function identificationTalk(req, res, next) {
     } if (!dateGenerator.test(talk.watchedAt)) {
         return res.status(400).json({ message: messageWatchedDate });
     } 
-    next();
+    return next();
 }
 
 module.exports = identificationTalk;

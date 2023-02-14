@@ -17,10 +17,14 @@ const PORT = '3000';
 
 // requisito 1 = funçao que le o arquivo talker.json e converte para a linguagem js e retorna para o path definido
 const readTalkers = async () => {
-  const talkers = path.resolve(__dirname, 'talker.json');
-  const talkersUTF8 = await fs.readFile(talkers, 'utf8');
-  return JSON.parse(talkersUTF8);
+  try {
+  const talkers = await fs.readFile(path.resolve(__dirname, 'talker.json'));
+  return JSON.parse(talkers);
+  } catch (error) {
+    return [];
+  }
 };
+
 
 const writeTalkers = async (identification) => {
   const talkerNew = fs.writeFile(path.resolve(__dirname, 'talker.json'), 
@@ -28,23 +32,13 @@ const writeTalkers = async (identification) => {
   return talkerNew;
 };
 
-// const newTalker = async (req, res) => {
-//   const { name, age, talk } = req.body;
-//   const talker = await readTalkers();
-//   const writeNewTalker = { id: talker.length + 1, name, age, talk };
-//   await writeTalkers(writeNewTalker);
-//   res.status(201).json(writeNewTalker);
-// };
-
-// requisito 3 = validacao de login, senha e post (funcao login na pasta validations)
-
 // não remova esse endpoint, e para o avaliador funcionar
 app.get('/', (_request, response) => {
   response.status(HTTP_OK_STATUS).send();
 });
 
 // usar o try/catch abarca qualquer erro possivel (requisito 1)
-app.get('/talker', async (req, res) => {
+app.get('/talker', async (__req, res) => {
   try {
     const talker = await readTalkers();
     res.status(200).json(talker);
@@ -81,6 +75,29 @@ async (req, res) => {
   const addNewTalker = { id: talkers.length + 1, ...req.body };
   await writeTalkers([...talkers, addNewTalker]);
   res.status(201).json(addNewTalker);
+});
+
+app.put('/talker/:id',
+tokenValidation, 
+names, 
+ageNumber, 
+talkersValidation, 
+rates,
+async (req, res) => {
+  const talkers = readTalkers();
+  const { id } = req.params;
+  const { name, age, talk: { watchedAt, rate } } = req.body;
+  talkers[Number(id)] = { id: +id, ...req.body };
+  await writeTalkers(talkers);
+  res.status(200).json({ id: +id, ...req.body });
+});
+
+app.delete('/talker/:id', tokenValidation, async (req, res) => {
+  const talkers = await readTalkers();
+  const { id } = req.params;
+  const list = talkers.filter((talker) => talker.id !== +(id));
+  await writeTalkers(list);
+  return res.status(204).json();
 });
 
 app.listen(PORT, () => {

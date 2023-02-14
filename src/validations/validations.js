@@ -15,7 +15,7 @@ function login(req, res, next) {
    } if (password.length < 6) {
     return res.status(400).json({ message: messagePassword2 }); 
    }
-   next();
+ next();
 }
 
 module.exports = login;
