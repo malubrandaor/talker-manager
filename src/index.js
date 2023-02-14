@@ -3,6 +3,11 @@ const fs = require('fs').promises;
 const path = require('path');
 const validationsRequired = require('./validations/validations');
 const tolken = require('./token');
+const ageNumber = require('./validations/age');
+const names = require('./validations/name');
+const talkersValidation = require('./validations/talk');
+const rates = require('./validations/rate');
+const tokenValidation = require('./validations/tokenValidation');
 
 const app = express();
 app.use(express.json());
@@ -12,18 +17,23 @@ const PORT = '3000';
 
 // requisito 1 = funçao que le o arquivo talker.json e converte para a linguagem js e retorna para o path definido
 const readTalkers = async () => {
-  const talkers = await fs.readFile(path.resolve(__dirname, 'talker.json'));
-  const talkersJson = JSON.parse(talkers);
-  // console.log(talkersJson);
-  return talkersJson;
+  const talkers = path.resolve(__dirname, 'talker.json');
+  const talkersUTF8 = await fs.readFile(talkers, 'utf8');
+  return JSON.parse(talkersUTF8);
 };
 
-// requisito 2 = funçao que busca o path pelo ultimo id -- Segui a dica de colocar a funcao dentro do get e usar o find
-// const getTalkersById = async (req) => {
-//   const { id } = req.params;
-//   const talkersId = await readTalkers();
-//   const talkersFindId = talkersId.find((i) => i.id === Number(id));
-//   return talkersFindId;
+const writeTalkers = async (identification) => {
+  const talkerNew = fs.writeFile(path.resolve(__dirname, 'talker.json'), 
+  JSON.stringify(identification));
+  return talkerNew;
+};
+
+// const newTalker = async (req, res) => {
+//   const { name, age, talk } = req.body;
+//   const talker = await readTalkers();
+//   const writeNewTalker = { id: talker.length + 1, name, age, talk };
+//   await writeTalkers(writeNewTalker);
+//   res.status(201).json(writeNewTalker);
 // };
 
 // requisito 3 = validacao de login, senha e post (funcao login na pasta validations)
@@ -51,13 +61,26 @@ app.get('/talker/:id', async (req, res) => {
    res.status(200).json(findId);
 });
 // a logica da funcao esta na pasta validations para organizaçao do arquivo
-app.post('/login', validationsRequired, (req, res) => {
+app.post('/login', validationsRequired, async (req, res) => {
   try {
   const randomToken = tolken();
   res.status(HTTP_OK_STATUS).json({ token: `${randomToken}` });
   } catch ({ message }) {
     res.status(500).json({ message });
   }
+});
+// logicas da funcao esta na pasta validations 
+app.post('/talker', 
+tokenValidation, 
+names, 
+ageNumber, 
+talkersValidation, 
+rates,
+async (req, res) => {
+  const talkers = await readTalkers();
+  const addNewTalker = { id: talkers.length + 1, ...req.body };
+  await writeTalkers([...talkers, addNewTalker]);
+  res.status(201).json(addNewTalker);
 });
 
 app.listen(PORT, () => {
