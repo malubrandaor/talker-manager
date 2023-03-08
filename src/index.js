@@ -24,7 +24,6 @@ const readTalkers = async () => {
     return [];
   }
 };
-
 const writeTalkers = async (identification) => {
   const talkerNew = fs.writeFile(path.resolve(__dirname, 'talker.json'), 
   JSON.stringify(identification));
